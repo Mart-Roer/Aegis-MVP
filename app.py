@@ -3,6 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import streamlit as st
 import pandas as pd
+from backend import run_psi_query, run_zkp_attestation, get_transaction_graph
 
 st.set_page_config(page_title="Aegis", layout="wide", page_icon="🛡️")
 
@@ -36,46 +37,25 @@ hr { border-color: #1e3a5f !important; opacity: 0.5; }
 """
 st.markdown(_CSS, unsafe_allow_html=True)
 
-# --- Synthetic in-code dataset (case queue) ---
+# --- Case metadata (PSI / ZKP / graph data lives in backend.py) ---
 SYNTHETIC_ENTITIES = {
     "CUST-1047": {
         "type": "Import/export business",
         "alert_source": "Transaction monitoring",
         "alert_reason": "Trade payments inconsistent with expected business activity",
         "internal_risk": "High",
-        "matching_banks": 3,
-        "anonymous_confirmations": 2,
-        "aggregate_risk": "High",
-        "transactions": [
-            {"from": "CUST-1047", "to": "Entity A", "amount": 25000, "note": "trade payments"},
-            {"from": "Entity A", "to": "Account B", "amount": 24000, "note": "circular transfer"},
-            {"from": "Account B", "to": "Entity C", "amount": 23000, "note": "repeat payments"},
-        ],
     },
     "CUST-2198": {
         "type": "Individual customer",
         "alert_source": "Transaction monitoring",
         "alert_reason": "Structured deposits followed by outbound transfers",
         "internal_risk": "Medium",
-        "matching_banks": 0,
-        "anonymous_confirmations": 0,
-        "aggregate_risk": "Low",
-        "transactions": [
-            {"from": "CUST-2198", "to": "ACC-2198-1", "amount": 1200, "note": "single transfer"},
-        ],
     },
     "CUST-3321": {
         "type": "SME",
         "alert_source": "Behavioural monitoring",
         "alert_reason": "Dormant account became active with rapid payment flows",
         "internal_risk": "High",
-        "matching_banks": 1,
-        "anonymous_confirmations": 0,
-        "aggregate_risk": "Low",
-        "transactions": [
-            {"from": "CUST-3321", "to": "ACC-3321-1", "amount": 4000, "note": "cash flow"},
-            {"from": "ACC-3321-1", "to": "ACC-3321-2", "amount": 3900, "note": "transfer"},
-        ],
     },
 }
 
@@ -208,9 +188,9 @@ def show_stage1():
     st.subheader("Stage 1 — Consortium Match Check")
     st.write("Check whether this entity appears across the consortium.")
     st.info("Institution identities are not disclosed. Only the match count is returned.")
-    matching = entity["matching_banks"]
     if state["stage1_run"]:
-        st.write(f"- Match count: **{matching}**")
+        psi = run_psi_query(selected)
+        st.write(f"- Match count: **{psi['match_count']}**")
         if state["stage1_pass"]:
             st.success("Match confirmed — escalation available.")
             if st.button("Continue to risk attestation", key="to_stage2"):
@@ -221,18 +201,17 @@ def show_stage1():
         if st.button("Run match check"):
             with st.spinner("Checking consortium matches..."):
                 time.sleep(0.6)
-            passed = matching >= 1
+            psi = run_psi_query(selected)
             new_state = get_case_state(selected)
             new_state.update({
-                "stage1_run": True, "stage1_pass": passed,
+                "stage1_run": True, "stage1_pass": psi["passed"],
                 "stage2_run": False, "stage2_pass": False,
                 "stage3_viewed": False,
                 "active_stage": 1
             })
             save_case_state(selected, new_state)
-            # timeline events
             add_timeline_event(selected, "Consortium match check completed")
-            if not passed:
+            if not psi["passed"]:
                 add_timeline_event(selected, "No consortium match found")
             st.rerun()
 
@@ -245,10 +224,9 @@ def show_stage2():
         st.warning("Risk attestation is locked until consortium match is confirmed.")
         return
     if state["stage2_run"]:
-        confirmations = entity["anonymous_confirmations"]
-        risk = entity["aggregate_risk"]
-        st.write(f"- Anonymous confirmations: **{confirmations}**")
-        st.write(f"- Aggregate concern: **{risk}**")
+        zkp = run_zkp_attestation(selected)
+        st.write(f"- Anonymous confirmations: **{zkp['anonymous_confirmations']}**")
+        st.write(f"- Aggregate concern: **{zkp['aggregate_risk']}**")
         if state["stage2_pass"]:
             st.success("Attestation verified — high concern confirmed.")
             if st.button("Continue to controlled network view", key="to_stage3"):
@@ -259,14 +237,11 @@ def show_stage2():
         if st.button("Verify risk attestation"):
             with st.spinner("Verifying attestation..."):
                 time.sleep(0.6)
-            confirmations = entity["anonymous_confirmations"]
-            risk = entity["aggregate_risk"]
-            passed2 = (confirmations >= 1) and (risk in ["High", "Critical"])
+            zkp = run_zkp_attestation(selected)
             new_state = get_case_state(selected)
-            new_state.update({"stage2_run": True, "stage2_pass": passed2, "active_stage": 2, "stage3_viewed": False})
+            new_state.update({"stage2_run": True, "stage2_pass": zkp["passed"], "active_stage": 2, "stage3_viewed": False})
             save_case_state(selected, new_state)
-            # timeline events
-            if passed2:
+            if zkp["passed"]:
                 add_timeline_event(selected, "Risk attestation verified")
             else:
                 add_timeline_event(selected, "Controlled network view not authorized")
@@ -282,7 +257,7 @@ def show_stage3():
         return
     if state.get("stage3_viewed", False):
         st.success("Controlled network view opened.")
-        df = pd.DataFrame(entity["transactions"])
+        df = pd.DataFrame(get_transaction_graph(selected))
         st.dataframe(df)
     else:
         if st.button("Open controlled network view"):
