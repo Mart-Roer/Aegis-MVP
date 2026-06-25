@@ -4,7 +4,37 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Aegis Investigator", layout="wide")
+st.set_page_config(page_title="Aegis", layout="wide", page_icon="🛡️")
+
+_CSS = """
+<style>
+#MainMenu {visibility: hidden;}
+footer    {visibility: hidden;}
+
+[data-testid="stSidebar"] {
+    background-color: #0f2044 !important;
+    border-right: 1px solid #1e3a5f;
+}
+
+div.stButton > button {
+    background-color: #f97316;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 0.45rem 1.2rem;
+}
+div.stButton > button:hover,
+div.stButton > button:active {
+    background-color: #ea580c !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+hr { border-color: #1e3a5f !important; opacity: 0.5; }
+</style>
+"""
+st.markdown(_CSS, unsafe_allow_html=True)
 
 # --- Synthetic in-code dataset (case queue) ---
 SYNTHETIC_ENTITIES = {
@@ -113,8 +143,8 @@ st.title("Aegis Investigator")
 st.markdown("Investigation workspace")
 
 # Case header with badges (separate lines)
-badge_flagged = "<div style='margin-bottom:6px'><span style='background:#ffe8e8;color:#a30000;padding:6px 10px;border-radius:12px;font-weight:600'>Flagged</span></div>"
-badge_eligible = "<div><span style='background:#eef2ff;color:#1f4ed8;padding:6px 10px;border-radius:12px'>Eligible for consortium check</span></div>"
+badge_flagged  = "<div style='margin-bottom:6px'><span style='background:#7f1d1d;color:#fca5a5;padding:6px 10px;border-radius:12px;font-weight:600'>Flagged</span></div>"
+badge_eligible = "<div><span style='background:#1e3a5f;color:#93c5fd;padding:6px 10px;border-radius:12px'>Eligible for consortium check</span></div>"
 
 st.header(selected)
 col_a, col_b = st.columns([3,1])
@@ -132,29 +162,22 @@ st.markdown("---")
 tracker_col1, tracker_col2, tracker_col3 = st.columns([1,1,1])
 
 def render_stage_label(name, status, active=False):
-    # Icons: ✅ completed, 🔓 available, 🔒 locked, ❌ failed
     if status == "completed":
-        icon = "✅"
-        bg = "#e6ffed"
-        border = "#2d8a4d"
+        icon, bg, border = "✅", "#052e16", "#22c55e"
     elif status == "failed":
-        icon = "❌"
-        bg = "#fff4e6"
-        border = "#d97706"
+        icon, bg, border = "❌", "#431407", "#f97316"
     elif status == "available":
-        icon = "🔓"
-        bg = "#eef6ff" if active else "#ffffff"
-        border = "#4c9aff" if active else "#e6eef8"
+        if active:
+            icon, bg, border = "🔓", "#0c2a4a", "#3b82f6"
+        else:
+            icon, bg, border = "🔓", "#0f1f3d", "#334155"
     else:
-        icon = "🔒"
-        bg = "#f5f7fa"
-        border = "#d1d5db"
-    html = f"""
+        icon, bg, border = "🔒", "#0a1625", "#1e2d45"
+    return f"""
     <div style="padding:8px;border-radius:6px;background:{bg};border:1.5px solid {border};text-align:center">
-      <div style="font-size:15px">{icon} <strong style="font-size:14px">{name}</strong></div>
+      <div style="font-size:15px;color:#e2e8f0">{icon} <strong style="font-size:14px">{name}</strong></div>
     </div>
     """
-    return html
 
 # compute statuses
 s1 = "available" if not state["stage1_run"] else ("completed" if state["stage1_pass"] else "failed")
