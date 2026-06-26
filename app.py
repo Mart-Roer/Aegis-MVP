@@ -3,6 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import streamlit as st
 import pandas as pd
+from aegis_backend import get_backend  # real consortium/Merkle/routing checks
 
 st.set_page_config(page_title="Aegis Investigator", layout="wide")
 
@@ -185,7 +186,9 @@ def show_stage1():
     st.subheader("Stage 1 — Consortium Match Check")
     st.write("Check whether this entity appears across the consortium.")
     st.info("Institution identities are not disclosed. Only the match count is returned.")
-    matching = entity["matching_banks"]
+    # Real check: sealed query routed blindly through Aegis, verified against
+    # each member's pre-registered Merkle root (see aegis_backend.py).
+    matching = get_backend().stage1_match_count(selected, entity["matching_banks"])
     if state["stage1_run"]:
         st.write(f"- Match count: **{matching}**")
         if state["stage1_pass"]:
@@ -222,8 +225,7 @@ def show_stage2():
         st.warning("Risk attestation is locked until consortium match is confirmed.")
         return
     if state["stage2_run"]:
-        confirmations = entity["anonymous_confirmations"]
-        risk = entity["aggregate_risk"]
+        confirmations, risk = get_backend().stage2_attestation(selected, entity["anonymous_confirmations"])
         st.write(f"- Anonymous confirmations: **{confirmations}**")
         st.write(f"- Aggregate concern: **{risk}**")
         if state["stage2_pass"]:
@@ -236,8 +238,7 @@ def show_stage2():
         if st.button("Verify risk attestation"):
             with st.spinner("Verifying attestation..."):
                 time.sleep(0.6)
-            confirmations = entity["anonymous_confirmations"]
-            risk = entity["aggregate_risk"]
+            confirmations, risk = get_backend().stage2_attestation(selected, entity["anonymous_confirmations"])
             passed2 = (confirmations >= 1) and (risk in ["High", "Critical"])
             new_state = get_case_state(selected)
             new_state.update({"stage2_run": True, "stage2_pass": passed2, "active_stage": 2, "stage3_viewed": False})
