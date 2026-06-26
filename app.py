@@ -100,190 +100,96 @@ def get_zkp_result(case_id):
 def build_stage3_network():
     nodes = {
         "alpha": {
-            "label": "CUST-1047\nBank Alpha",
-            "pos": (0.0, 0.0),
+            "label": "CUST-1047<br><span style='font-size:11px;color:#94a3b8'>Bank Alpha</span>",
+            "bank": "Bank Alpha",
+            "type": "origin",
+            "x": 0.08,
+            "y": 0.52,
             "color": "#dc2626",
-            "border": "#fca5a5",
-            "hover": (
-                "From: CUST-1047 / Bank Alpha<br>"
-                "Disclosure level: Full disclosure<br>"
-                "Reason: Originating flagged account at Bank Alpha"
-            ),
         },
-        "a_trading": {
-            "label": "Entity A Trading\nBank Beta",
-            "pos": (1.6, 1.0),
+        "entity_a": {
+            "label": "Entity A Trading<br><span style='font-size:11px;color:#94a3b8'>Bank Beta</span>",
+            "bank": "Bank Beta",
+            "type": "intermediary",
+            "x": 0.32,
+            "y": 0.78,
             "color": "#475569",
-            "border": "#94a3b8",
-            "hover": (
-                "From: Entity A Trading / Bank Beta<br>"
-                "Disclosure level: Controlled / pseudonymised<br>"
-                "Reason: Included to understand the network pattern"
-            ),
         },
         "logistics": {
-            "label": "Logistics D\nBank Theta",
-            "pos": (1.6, -1.2),
+            "label": "Logistics D<br><span style='font-size:11px;color:#94a3b8'>Bank Theta</span>",
+            "bank": "Bank Theta",
+            "type": "intermediary",
+            "x": 0.56,
+            "y": 0.78,
             "color": "#475569",
-            "border": "#94a3b8",
-            "hover": (
-                "From: Logistics D / Bank Theta<br>"
-                "Disclosure level: Controlled / pseudonymised<br>"
-                "Reason: Included to understand the network pattern"
-            ),
-        },
-        "consulting": {
-            "label": "Entity C Consulting\nBank Zeta",
-            "pos": (3.2, 0.0),
-            "color": "#475569",
-            "border": "#94a3b8",
-            "hover": (
-                "From: Entity C Consulting / Bank Zeta<br>"
-                "Disclosure level: Controlled / pseudonymised<br>"
-                "Reason: Included to understand the network pattern"
-            ),
-        },
-        "account_b": {
-            "label": "Account B\nBank Eta",
-            "pos": (4.5, 0.0),
-            "color": "#475569",
-            "border": "#94a3b8",
-            "hover": (
-                "From: Account B / Bank Eta<br>"
-                "Disclosure level: Controlled / pseudonymised<br>"
-                "Reason: Included to understand the network pattern"
-            ),
-        },
-        "gamma": {
-            "label": "CUST-1047\nBank Gamma",
-            "pos": (6.2, 1.0),
-            "color": "#f97316",
-            "border": "#fb923c",
-            "hover": (
-                "From: CUST-1047 / Bank Gamma<br>"
-                "Disclosure level: Full disclosure<br>"
-                "Reason: Same customer matched at another consortium bank"
-            ),
         },
         "delta": {
-            "label": "CUST-1047\nBank Delta",
-            "pos": (6.2, -1.0),
+            "label": "CUST-1047<br><span style='font-size:11px;color:#94a3b8'>Matched account · Bank Delta</span>",
+            "bank": "Matched account · Bank Delta",
+            "type": "matched",
+            "x": 0.88,
+            "y": 0.78,
             "color": "#f97316",
-            "border": "#fb923c",
-            "hover": (
-                "From: CUST-1047 / Bank Delta<br>"
-                "Disclosure level: Full disclosure<br>"
-                "Reason: Same customer matched at another consortium bank"
-            ),
+        },
+        "consulting": {
+            "label": "Entity C Consulting<br><span style='font-size:11px;color:#94a3b8'>Bank Zeta</span>",
+            "bank": "Bank Zeta",
+            "type": "intermediary",
+            "x": 0.32,
+            "y": 0.28,
+            "color": "#475569",
+        },
+        "account_b": {
+            "label": "Account B<br><span style='font-size:11px;color:#94a3b8'>Bank Eta</span>",
+            "bank": "Bank Eta",
+            "type": "intermediary",
+            "x": 0.56,
+            "y": 0.28,
+            "color": "#475569",
+        },
+        "gamma": {
+            "label": "CUST-1047<br><span style='font-size:11px;color:#94a3b8'>Matched account · Bank Gamma</span>",
+            "bank": "Matched account · Bank Gamma",
+            "type": "matched",
+            "x": 0.88,
+            "y": 0.28,
+            "color": "#f97316",
         },
     }
 
     edges = [
-        {
-            "from": "alpha",
-            "to": "a_trading",
-            "value": 26.0,
-            "label": "€26.0k / 4 tx",
-            "display_label": "€26.0k",
-            "show_label": True,
-            "time_window": "10 days",
-            "pattern": "repeated trade-looking payments",
-            "disclosure": "Controlled / pseudonymised",
-        },
-        {
-            "from": "a_trading",
-            "to": "logistics",
-            "value": 15.5,
-            "label": "€15.5k / 3 tx",
-            "display_label": "",
-            "show_label": False,
-            "time_window": "6 days",
-            "pattern": "split onward transfer",
-            "disclosure": "Controlled / pseudonymised",
-        },
-        {
-            "from": "logistics",
-            "to": "delta",
-            "value": 14.9,
-            "label": "€14.9k / 3 tx",
-            "display_label": "€14.9k",
-            "show_label": True,
-            "time_window": "5 days",
-            "pattern": "funds reappear at matched customer account",
-            "disclosure": "Full disclosure",
-        },
-        {
-            "from": "a_trading",
-            "to": "consulting",
-            "value": 9.2,
-            "label": "€9.2k / 2 tx",
-            "display_label": "",
-            "show_label": False,
-            "time_window": "4 days",
-            "pattern": "shared intermediary in both paths",
-            "disclosure": "Controlled / pseudonymised",
-        },
-        {
-            "from": "alpha",
-            "to": "consulting",
-            "value": 17.5,
-            "label": "€17.5k / 5 tx",
-            "display_label": "€17.5k",
-            "show_label": True,
-            "time_window": "12 days",
-            "pattern": "repeated service-looking payments",
-            "disclosure": "Controlled / pseudonymised",
-        },
-        {
-            "from": "consulting",
-            "to": "account_b",
-            "value": 10.8,
-            "label": "€10.8k / 4 tx",
-            "display_label": "",
-            "show_label": False,
-            "time_window": "4 days",
-            "pattern": "possible transit/pass-through account",
-            "disclosure": "Controlled / pseudonymised",
-        },
-        {
-            "from": "account_b",
-            "to": "gamma",
-            "value": 10.3,
-            "label": "€10.3k / 4 tx",
-            "display_label": "€10.3k",
-            "show_label": True,
-            "time_window": "3 days",
-            "pattern": "rapid onward movement to matched customer account",
-            "disclosure": "Full disclosure",
-        },
-        {
-            "from": "consulting",
-            "to": "delta",
-            "value": 6.1,
-            "label": "€6.1k / 2 tx",
-            "display_label": "",
-            "show_label": False,
-            "time_window": "2 days",
-            "pattern": "secondary convergence into matched customer account",
-            "disclosure": "Full disclosure",
-        },
+        ("alpha", "entity_a", "€26.0k · 4 tx", 26000, "4 tx"),
+        ("entity_a", "logistics", "€15.5k · 3 tx", 15500, "3 tx"),
+        ("logistics", "delta", "€14.9k · 3 tx", 14900, "3 tx"),
+        ("alpha", "consulting", "€17.5k · 5 tx", 17500, "5 tx"),
+        ("consulting", "account_b", "€10.8k · 4 tx", 10800, "4 tx"),
+        ("account_b", "gamma", "€10.3k · 4 tx", 10300, "4 tx"),
     ]
+
+    label_positions = {
+        ("alpha", "entity_a"): {"x": 0.20, "y": 0.88},
+        ("entity_a", "logistics"): {"x": 0.44, "y": 0.88},
+        ("logistics", "delta"): {"x": 0.72, "y": 0.88},
+        ("alpha", "consulting"): {"x": 0.20, "y": 0.38},
+        ("consulting", "account_b"): {"x": 0.44, "y": 0.38},
+        ("account_b", "gamma"): {"x": 0.72, "y": 0.38},
+    }
 
     fig = go.Figure()
 
-    for edge in edges:
-        x0, y0 = nodes[edge["from"]]["pos"]
-        x1, y1 = nodes[edge["to"]]["pos"]
-        width = max(1.5, min(5.5, edge["value"] / 5.5 + 1.5))
+    for source, target, label, amount, tx in edges:
+        x0, y0 = nodes[source]["x"], nodes[source]["y"]
+        x1, y1 = nodes[target]["x"], nodes[target]["y"]
+        width = max(1.5, min(4.0, 1.0 + amount / 7000))
 
         hovertext = (
-            f"<b>From:</b> {nodes[edge['from']]['label'].replace(chr(10), ' ')}<br>"
-            f"<b>To:</b> {nodes[edge['to']]['label'].replace(chr(10), ' ')}<br>"
-            f"<b>Aggregate value:</b> {edge['label'].split(' / ')[0]}<br>"
-            f"<b>Transactions:</b> {edge['label'].split(' / ')[1]}<br>"
-            f"<b>Time window:</b> {edge['time_window']}<br>"
-            f"<b>Pattern signal:</b> {edge['pattern']}<br>"
-            f"<b>Disclosure level:</b> {edge['disclosure']}"
+            f"From: {nodes[source]['label'].replace('<br>', ' ')}<br>"
+            f"To: {nodes[target]['label'].replace('<br>', ' ')}<br>"
+            f"Amount: {label.split(' · ')[0]}<br>"
+            f"Transactions: {tx}<br>"
+            f"Time window: {'10 days' if source == 'alpha' and target == 'entity_a' else '6 days' if source == 'entity_a' and target == 'logistics' else '5 days' if source == 'logistics' and target == 'delta' else '12 days' if source == 'alpha' and target == 'consulting' else '4 days' if source == 'consulting' and target == 'account_b' else '3 days'}<br>"
+            f"Pattern signal: {'Trade-looking payment from flagged customer' if source == 'alpha' and target == 'entity_a' else 'Funds moved onward through intermediary' if source == 'entity_a' and target == 'logistics' else 'Funds reappear at matched customer account' if source == 'logistics' and target == 'delta' else 'Service-looking payment from flagged customer' if source == 'alpha' and target == 'consulting' else 'Possible pass-through account' if source == 'consulting' and target == 'account_b' else 'Rapid onward movement to matched customer account'}<br>"
+            f"Disclosure level: {'Full disclosure' if target in ['delta', 'gamma'] else 'Controlled / pseudonymised'}"
         )
 
         fig.add_trace(go.Scatter(
@@ -306,76 +212,68 @@ def build_stage3_network():
             axref="x",
             ayref="y",
             showarrow=True,
-            arrowhead=2,
-            arrowsize=0.8,
+            arrowhead=3,
+            arrowsize=0.75,
             arrowwidth=width,
-            arrowcolor="rgba(148,163,184,0.75)",
-            opacity=0.88,
-            standoff=16,
-            startstandoff=12,
+            arrowcolor="rgba(148,163,184,0.8)",
+            opacity=0.9,
+            standoff=14,
+            startstandoff=8,
         )
 
-        if edge["show_label"]:
+        if (source, target) in label_positions:
+            pos = label_positions[(source, target)]
             fig.add_annotation(
-                x=(x0 + x1) / 2,
-                y=(y0 + y1) / 2,
-                text=edge["display_label"],
+                x=pos["x"],
+                y=pos["y"],
+                text=label,
                 showarrow=False,
-                align="center",
                 font=dict(size=11, color="#ffffff"),
-                bgcolor="rgba(15,23,42,0.95)",
+                bgcolor="#0f172a",
                 bordercolor="#334155",
                 borderwidth=1,
-                borderpad=4,
-                opacity=0.98,
-                yshift=10,
+                borderpad=5,
+                opacity=0.95,
             )
 
-    node_x = []
-    node_y = []
-    node_text = []
-    node_color = []
-    node_border = []
-    node_hover = []
-    for node_info in nodes.values():
-        x, y = node_info["pos"]
-        node_x.append(x)
-        node_y.append(y)
-        node_text.append(node_info["label"])
-        node_color.append(node_info["color"])
-        node_border.append(node_info["border"])
-        node_hover.append(node_info["hover"])
+    node_x = [node["x"] for node in nodes.values()]
+    node_y = [node["y"] for node in nodes.values()]
+    node_text = [node["label"] for node in nodes.values()]
+    node_hover = [
+        f"{node['label'].replace('<br>', ' ')}<br>"
+        f"Bank: {node['bank']}<br>"
+        f"Disclosure level: {'Full disclosure' if node['type'] != 'intermediary' else 'Controlled / pseudonymised'}"
+        for node in nodes.values()
+    ]
+    node_colors = [node["color"] for node in nodes.values()]
 
     fig.add_trace(go.Scatter(
         x=node_x,
         y=node_y,
         mode="markers+text",
-        marker=dict(
-            size=54,
-            color=node_color,
-            line=dict(color=node_border, width=2),
-        ),
+        marker=dict(size=58, color=node_colors, line=dict(color="#0f172a", width=2)),
         text=node_text,
         textposition="top center",
-        textfont=dict(color="#f8fafc", size=11),
+        textfont=dict(color="#f8fafc", size=12),
         hoverinfo="text",
         hovertext=node_hover,
         showlegend=False,
     ))
 
     fig.update_layout(
-        title="Controlled Stage 3 network view",
+        title="CUST-1047 Network View",
         title_x=0.0,
         title_font=dict(size=16, color="#f8fafc"),
-        plot_bgcolor="rgba(15,23,42,0.95)",
         paper_bgcolor="rgba(15,23,42,0.95)",
-        margin=dict(l=10, r=10, t=40, b=20),
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.4, 6.6]),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.8, 1.6]),
-        height=640,
+        plot_bgcolor="rgba(15,23,42,0.95)",
+        margin=dict(l=10, r=10, t=50, b=10),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0.0, 1.0]),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0.0, 1.0]),
+        height=600,
     )
 
     return fig
+
 
 def get_stage3_transactions():
     return [
@@ -386,7 +284,6 @@ def get_stage3_transactions():
             "Number of transactions": "4 tx",
             "Time window": "10 days",
             "Pattern signal": "repeated trade-looking payments",
-            "Disclosure level": "Controlled / pseudonymised",
         },
         {
             "From": "Entity A Trading / Bank Beta",
@@ -395,7 +292,6 @@ def get_stage3_transactions():
             "Number of transactions": "3 tx",
             "Time window": "6 days",
             "Pattern signal": "split onward transfer",
-            "Disclosure level": "Controlled / pseudonymised",
         },
         {
             "From": "Logistics D / Bank Theta",
@@ -403,17 +299,7 @@ def get_stage3_transactions():
             "Aggregate value": "€14.9k",
             "Number of transactions": "3 tx",
             "Time window": "5 days",
-            "Pattern signal": "funds reappear at matched customer account",
-            "Disclosure level": "Full disclosure",
-        },
-        {
-            "From": "Entity A Trading / Bank Beta",
-            "To": "Entity C Consulting / Bank Zeta",
-            "Aggregate value": "€9.2k",
-            "Number of transactions": "2 tx",
-            "Time window": "4 days",
-            "Pattern signal": "shared intermediary in both paths",
-            "Disclosure level": "Controlled / pseudonymised",
+            "Pattern signal": "funds reappear at matched customer",
         },
         {
             "From": "CUST-1047 / Bank Alpha",
@@ -422,7 +308,6 @@ def get_stage3_transactions():
             "Number of transactions": "5 tx",
             "Time window": "12 days",
             "Pattern signal": "repeated service-looking payments",
-            "Disclosure level": "Controlled / pseudonymised",
         },
         {
             "From": "Entity C Consulting / Bank Zeta",
@@ -431,7 +316,6 @@ def get_stage3_transactions():
             "Number of transactions": "4 tx",
             "Time window": "4 days",
             "Pattern signal": "possible transit/pass-through account",
-            "Disclosure level": "Controlled / pseudonymised",
         },
         {
             "From": "Account B / Bank Eta",
@@ -439,17 +323,7 @@ def get_stage3_transactions():
             "Aggregate value": "€10.3k",
             "Number of transactions": "4 tx",
             "Time window": "3 days",
-            "Pattern signal": "rapid onward movement to matched customer account",
-            "Disclosure level": "Full disclosure",
-        },
-        {
-            "From": "Entity C Consulting / Bank Zeta",
-            "To": "CUST-1047 / Bank Delta",
-            "Aggregate value": "€6.1k",
-            "Number of transactions": "2 tx",
-            "Time window": "2 days",
-            "Pattern signal": "secondary convergence into matched customer account",
-            "Disclosure level": "Full disclosure",
+            "Pattern signal": "rapid onward movement to matched customer",
         },
     ]
 
@@ -680,93 +554,62 @@ with tab_inv:
             psi = get_psi_result(selected)
             zkp = get_zkp_result(selected)
 
-            summary_card = f"""
-            <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:18px;margin-bottom:18px'>
-                <div style='color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:0.08em;margin-bottom:10px'>Investigation summary</div>
-                <div style='color:#e2e8f0;font-size:14px;font-weight:700;margin-bottom:12px'>Selected case: {selected}</div>
-                <div style='color:#cbd5e1;font-size:13px;line-height:1.7'>
-                    Originating institution: Bank Alpha<br>
-                    Stage 1 result: Match found at {psi["match_count"]} other consortium banks<br>
-                    Matched institutions: {", ".join(psi["matched_banks"] or ["N/A"])}<br>
-                    Stage 2 result: {zkp["anonymous_confirmations"]} anonymous confirmations<br>
-                    Aggregate concern: {zkp["aggregate_risk"]}<br>
-                    Disclosure mode: Controlled Stage 3 network view unlocked
-                </div>
-            </div>
-            """
+            left_col, right_col = st.columns([3, 2])
+            with left_col:
+                st.markdown(
+                    """
+                    <div style='background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:18px'>
+                        <div style='color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:0.08em;margin-bottom:10px'>
+                            Investigation summary
+                        </div>
+                        <div style='color:#cbd5e1;font-size:13px;line-height:1.8'>
+                            Selected case: <strong>CUST-1047</strong><br>
+                            Originating institution: <strong>Bank Alpha</strong><br>
+                            Stage 1 result: <strong>Match found at 2 other consortium banks</strong><br>
+                            Stage 2 result: <strong>2 anonymous confirmations</strong><br>
+                            Aggregate concern: <strong>High</strong><br>
+                            Disclosure mode: <strong>Controlled Stage 3 network view unlocked</strong>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with right_col:
+                metric_a, metric_b = st.columns(2)
+                metric_a.metric("Matched banks", "2")
+                metric_b.metric("Intermediary entities", "4")
+                st.metric("Reappearing value", "€25,200")
 
-            insight_card = f"""
-            <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:18px;margin-bottom:18px'>
-                <div style='color:#f8fafc;font-size:13px;font-weight:700;margin-bottom:10px'>Network insight</div>
-                <div style='color:#cbd5e1;font-size:13px;line-height:1.7'>
-                    Bank Alpha initially saw only outgoing payments from <strong>CUST-1047</strong>. Stage 3 reveals that these funds are split through intermediaries and reappear in matched <strong>CUST-1047</strong> accounts at Bank Gamma and Bank Delta. This indicates a cross-bank layering and convergence pattern that would not be visible to a single institution.
-                </div>
-            </div>
-            """
-
-            legend_card = """
-            <div style='display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px'>
-                <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px;max-width:260px;'>
-                    <div style='color:#ef4444;font-size:13px;font-weight:700;margin-bottom:6px'>Red node</div>
-                    <div style='color:#cbd5e1;font-size:13px'>Originating flagged customer account</div>
-                </div>
-                <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px;max-width:260px;'>
-                    <div style='color:#f97316;font-size:13px;font-weight:700;margin-bottom:6px'>Orange node</div>
-                    <div style='color:#cbd5e1;font-size:13px'>Same customer at another matched bank</div>
-                </div>
-                <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px;max-width:260px;'>
-                    <div style='color:#94a3b8;font-size:13px;font-weight:700;margin-bottom:6px'>Grey node</div>
-                    <div style='color:#cbd5e1;font-size:13px'>Controlled / pseudonymised counterparty</div>
-                </div>
-                <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:12px;max-width:260px;'>
-                    <div style='color:#cbd5e1;font-size:13px;font-weight:700;margin-bottom:6px'>Arrow direction</div>
-                    <div style='color:#cbd5e1;font-size:13px'>Observed money flow</div>
-                </div>
-            </div>
-            """
-
-            st.markdown("<div style='display:flex;gap:18px;flex-wrap:wrap'>"
-                        f"<div style='flex:1 1 420px'>{summary_card}</div>"
-                        f"<div style='flex:1 1 320px'>{insight_card}</div>"
-                        "</div>", unsafe_allow_html=True)
-
-            st.markdown(legend_card, unsafe_allow_html=True)
             fig = build_stage3_network()
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-            st.markdown(
-                "Each arrow aggregates multiple transactions over a short time window. Thicker arrows indicate higher total value moved. "
-                "Red nodes show the originating flagged account. Orange nodes show matched accounts of the same customer at other banks. "
-                "Grey nodes are controlled / pseudonymised counterparties included because they are necessary to understand the network pattern."
-            )
-
-            st.markdown(
-                """
-                <div style='background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:16px;margin-top:18px'>
-                    <div style='color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:0.08em;margin-bottom:10px'>Diagram legend</div>
-                    <div style='color:#cbd5e1;font-size:13px;line-height:1.7'>
-                        <strong style='color:#ef4444'>Red node</strong>: originating flagged customer account<br>
-                        <strong style='color:#f97316'>Orange node</strong>: same customer at another matched bank<br>
-                        <strong style='color:#94a3b8'>Grey node</strong>: controlled / pseudonymised counterparty<br>
-                        <strong>Arrow direction</strong>: observed money flow<br>
-                        <strong>Thicker arrow</strong>: higher aggregate value<br>
-                        <strong>Hover</strong>: transaction count, time window, and pattern signal
+            legend_cols = st.columns(4)
+            legend_items = [
+                ("Red node", "Originating flagged customer account", "#ef4444"),
+                ("Orange node", "Same customer at another matched bank", "#f97316"),
+                ("Grey node", "Controlled / pseudonymised counterparty", "#94a3b8"),
+                ("Arrow direction", "Observed money flow", "#cbd5e1"),
+            ]
+            for col, (title, desc, color) in zip(legend_cols, legend_items):
+                col.markdown(
+                    f"""
+                    <div style='display:inline-flex;flex-direction:column;align-items:flex-start;
+                                white-space:nowrap;background:#0f172a;border:1px solid #1e293b;
+                                border-radius:10px;padding:10px 16px;margin-bottom:8px;line-height:1.3;'>
+                        <div style='font-size:12px;font-weight:700;color:{color};margin-bottom:4px'>
+                            {title}
+                        </div>
+                        <div style='color:#cbd5e1;font-size:13px'>
+                            {desc}
+                        </div>
                     </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                    """,
+                    unsafe_allow_html=True,
+                )
 
+            st.markdown("### CUST-1047 Transactions Database")
             transactions = pd.DataFrame(get_stage3_transactions())
             st.dataframe(transactions, use_container_width=True, hide_index=True)
-
-            st.info(
-                "Each edge aggregates several transactions over a short time window. "
-                "Thicker lines indicate higher total value. Full-disclosure nodes meet "
-                "the risk threshold after Stage 1 and Stage 2. Controlled nodes remain "
-                "pseudonymised but are included because they are necessary to understand "
-                "the transaction pattern."
-            )
         else:
             if st.button("Open controlled network view"):
                 ns = get_case_state(selected)
