@@ -312,6 +312,99 @@ The key message of the MVP:
 
 > Aegis helps banks investigate cross-institutional AML risk while minimizing unnecessary data sharing. It does not begin with broad data pooling. It begins with an internally flagged customer and escalates only when justified.
 
+## Cryptographic Backend (`aegis/` package and `aegis_backend.py`)
+
+> This section supersedes the earlier "keep everything in `app.py`" and "avoid
+> cryptographic libraries" guidance **for the privacy-check layer only**. The MVP
+> was extended by the coding agent so that Stage 1 and Stage 2 are backed by a
+> genuine membership-proof protocol instead of reading hardcoded case values.
+> The dashboard must stay visually unchanged; only the *source* of the numbers
+> changes.
+
+### Goal
+
+Implement the privacy checks behind Stages 1 and 2 as real cryptography — a
+shared identifier, committed Merkle roots, membership proofs ("recipes"), sealed
+channels, and a blind router — and expose them to `app.py` through a single
+bridge module. The agent should generate this as a small, self-contained package
+inside the repository, with each module documented in plain language.
+
+### Files the agent should create (keep each small and single-purpose)
+
+* `aegis/identity.py` — the shared cross-bank identifier.
+* `aegis/merkle.py` — a bank's committed high-risk list and the membership recipe.
+* `aegis/channel.py` — the sealed channels that keep the router blind.
+* `aegis/parties.py` — `MemberBank` (querier/responder) and `Aegis` (blind router).
+* `aegis_backend.py` — the bridge the dashboard calls.
+* `demo.py` — a standalone lifecycle + adversarial self-test.
+
+### Module-by-module instructions
+
+* **`identity.py`** — Implement `canonicalize(attrs)` to normalise identity
+  fields (lowercase, trimmed, fixed order) and `shared_identifier(attrs, key)` as
+  a keyed hash (HMAC-SHA256) so the same person yields the same opaque code at
+  every bank. Document clearly that this is a **stand-in for an Oblivious PRF**;
+  the whole codebase must call this one function so the upgrade is local.
+* **`merkle.py`** — Implement a `FlaggedSet` that hashes each high-risk code into
+  a salted leaf and builds a Merkle `root`. Provide `make_recipe(identifier)`
+  (salt + sibling path) and `verify_recipe(root, identifier, recipe)`. The root
+  must be one-way and binding; entries other than the queried one must never be
+  revealed.
+* **`channel.py`** — Provide two sealed channels using the `cryptography` library:
+  a symmetric broadcast seal readable by member banks but not the operator, and a
+  reply seal to the querying bank's one-time public key. Keep this file short.
+* **`parties.py`** — Implement `MemberBank.make_query`, `MemberBank.answer`
+  (always reply: a real recipe or an encrypted `NO_MATCH`), `MemberBank.read_replies`
+  (accept only roots registered with Aegis **and** recipes that verify), and an
+  `Aegis` router that forwards opaque blobs and publishes the unlabelled set of
+  valid roots.
+* **`aegis_backend.py`** — Expose exactly `stage1_match_count(case_id, n)` and
+  `stage2_attestation(case_id, n)`; build a consortium per case, run the real
+  sealed/routed query, and return the verified counts (with a derived aggregate
+  risk). Use a cached singleton via `get_backend()`.
+
+### Dashboard integration (no visual change)
+
+In `app.py`, replace the reads of `entity["matching_banks"]` and
+`entity["anonymous_confirmations"]` with `get_backend().stage1_match_count(...)`
+and `get_backend().stage2_attestation(...)`. Do **not** change any text, layout,
+styling, or stage-gating logic. Add a `.streamlit/config.toml` theme so button
+colours stay readable across Streamlit versions.
+
+### Real vs. simulated boundary (state this honestly)
+
+* **Real:** the Merkle membership proofs, the sealed channels, the blind routing,
+  and verification against pre-registered roots.
+* **Stand-ins:** the shared identifier is a keyed hash standing in for an OPRF;
+  full Stage-1 PSI and Stage-3 MPC graph analytics remain simulated.
+* Do **not** claim full production PSI or MPC; the membership-proof layer is real,
+  the surrounding stages are simplified.
+
+### Dependencies
+
+Add `cryptography` to `requirements.txt` (used only by `channel.py`). Everything
+else stays standard library. `streamlit` and `pandas` remain for the dashboard.
+
+### Testing this layer
+
+```bash
+python aegis_backend.py   # self-test: verified counts match each case scenario
+python demo.py            # full lifecycle + adversarial checks
+streamlit run app.py      # confirm the dashboard behaves exactly as before
+```
+
+The adversarial checks must show: a forged (unregistered) root is rejected, a
+mistyped identity correctly returns no match, and the router cannot read the
+traffic it relays.
+
+### Conventions for this package
+
+* Pure standard library plus `cryptography`; no other cryptographic dependencies.
+* One responsibility per module; the dashboard depends only on `aegis_backend`.
+* Every public function carries a docstring linking it to its business-plan role.
+* Never expose which bank matched, never reveal the queried entity to the
+  operator, and never disclose any member's full list.
+
 ## Session Log Requirement
 
 After every meaningful coding session or major change, update `session-log.md`.
