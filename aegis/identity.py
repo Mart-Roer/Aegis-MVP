@@ -5,7 +5,7 @@ THE PROBLEM THIS SOLVES
 -----------------------
 Two banks each hold "Jan de Vries, born 1980-03-02". To check whether they mean
 the SAME person, they must compare something -- but they cannot pass each other
-raw names and addresses (that is sharing personal data). So every bank derives
+the raw identity details (that is sharing personal data). So every bank derives
 the SAME opaque code from the SAME identifying fields, using one agreed function.
 Same person in, same code out, at every bank. Banks then match on the code.
 
@@ -14,8 +14,12 @@ WHAT THIS FILE PRODUCES
   canonicalize(attrs)        -> a normalised byte-string of the identity fields,
                                 so trivial differences (case, spacing) don't
                                 produce different codes.
-  shared_identifier(attrs)   -> the opaque code (a hex string) used everywhere
+  shared_identifier(attrs, consortium_key)
+                             -> the opaque code (a hex string) used everywhere
                                 else in Aegis as the "entity id".
+
+The fields hashed are family_name, given_name, birth_date, national_id
+(see CANON_FIELDS below) -- no address is used.
 
 HONEST LIMITATION  (read this -- it is the crux)
 ------------------------------------------------
@@ -32,7 +36,7 @@ re-identifiable. Under GDPR this is why such a hash is still *personal data*.
     Aegis is built to call this one function, so swapping in the OPRF is a
     drop-in change. <<<
 
-ALSO: matching is EXACT. A typo or a changed address yields a different code and
+ALSO: matching is EXACT. A typo or a changed field yields a different code and
 a silent miss. Hence the strict canonicalisation below, and the preference for
 stable, high-entropy fields (LEI for companies; national id + date of birth for
 persons, where lawful) -- exactly the standardisation AMLA's RTS is producing.

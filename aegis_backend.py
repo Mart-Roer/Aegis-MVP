@@ -18,6 +18,13 @@ the cryptography is correct the recomputed count equals the scenario; if it ever
 broke, the dashboard would show a different number -- so the check is genuine,
 not a passthrough.
 
+NOTE on what is actually implemented: both stages use the SAME primitive -- a
+membership check against each member's committed Merkle set. "Presence" (Stage 1)
+and "high-risk" (Stage 2) are a labelling/data distinction, not two different
+mechanisms here. In production Stage 1 is full Private Set Intersection over each
+bank's customer base (see identity.py); this MVP models it with the same
+committed-set membership used for the high-risk attestation.
+
 The UI calls only `get_backend().stage1_match_count(...)` and
 `.stage2_attestation(...)`. Nothing here imports Streamlit, so it is testable
 on its own (see the __main__ block).

@@ -1,9 +1,2 @@
-# Explicit theme so the UI (incl. buttons) renders with readable, consistent
-# colours across Streamlit versions. Without this, newer Streamlit defaults
-# washed the buttons out. Palette matches the app's existing blue accents.
 [theme]
 base = "light"
-primaryColor = "#1f4ed8"             # accent / primary buttons (matches badges)
-backgroundColor = "#ffffff"          # main page background
-secondaryBackgroundColor = "#eef2f8" # button + sidebar surface (clear contrast)
-textColor = "#1a1f2e"                # dark text on buttons and page

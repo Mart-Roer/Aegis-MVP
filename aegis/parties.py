@@ -17,9 +17,10 @@ WHO LEARNS WHAT (this is the whole point):
   * Responding banks  : learn the entity (they must, to check their list); do
                         NOT learn which bank asked.   [hiding the entity from
                         them is the OPRF/PSI upgrade -- see identity.py]
-  * Aegis             : learns that bank X ran a query and that every member
-                        replied; CANNOT read the entity or the recipes, so it
-                        cannot tell who matched.
+  * Aegis             : learns that a query happened and that every member
+                        replied (in a networked deployment it would also see
+                        which member initiated it); CANNOT read the entity or the
+                        recipes, so it cannot tell who matched.
   * Querying bank     : learns how many members flag the person, and which
                         (unlabelled) roots matched -- NOT which banks.
 """

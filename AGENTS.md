@@ -334,18 +334,18 @@ inside the repository, with each module documented in plain language.
 * `aegis/identity.py` — the shared cross-bank identifier.
 * `aegis/merkle.py` — a bank's committed high-risk list and the membership recipe.
 * `aegis/channel.py` — the sealed channels that keep the router blind.
-* `aegis/parties.py` — `MemberBank` (querier/responder) and `Aegis` (blind router).
-* `aegis_backend.py` — the bridge the dashboard calls.
-* `demo.py` — a standalone lifecycle + adversarial self-test.
+* `aegis/parties.py` — `MemberBan
+## Integration note — dashboard entry points
 
-### Module-by-module instructions
-
-* **`identity.py`** — Implement `canonicalize(attrs)` to normalise identity
-  fields (lowercase, trimmed, fixed order) and `shared_identifier(attrs, key)` as
-  a keyed hash (HMAC-SHA256) so the same person yields the same opaque code at
-  every bank. Document clearly that this is a **stand-in for an Oblivious PRF**;
-  the whole codebase must call this one function so the upgrade is local.
-* **`merkle.py`** — Implement a `FlaggedSet` that hashes each high-risk code into
+The dashboard (`app.py`, main's rich Plotly UI) does not call `aegis_backend`
+directly. It imports `run_stage1_psi_cardinality` (`backend_stage1.py`) and
+`run_zkp_attestation` (`backend.py`). These two modules are **thin real-crypto
+adapters**: they keep the function names and return shapes the UI expects, but
+obtain their match/confirmation counts from the real protocol via
+`get_backend()` in `aegis_backend.py`. This is what lets main's UI run unchanged
+on top of genuine cryptography. The earlier "wire app.py to get_backend()
+directly" guidance is superseded by this adapter layer.
+lement a `FlaggedSet` that hashes each high-risk code into
   a salted leaf and builds a Merkle `root`. Provide `make_recipe(identifier)`
   (salt + sibling path) and `verify_recipe(root, identifier, recipe)`. The root
   must be one-way and binding; entries other than the queried one must never be
