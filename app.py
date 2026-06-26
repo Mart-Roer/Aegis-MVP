@@ -7,7 +7,8 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from backend import run_psi_query, run_zkp_attestation
+from backend import run_zkp_attestation
+from backend_stage1 import run_stage1_psi_cardinality
 
 st.set_page_config(page_title="Aegis", layout="wide", page_icon="🛡️")
 
@@ -77,13 +78,16 @@ def fmt_time(ts_iso):
     return datetime.fromisoformat(ts_iso).strftime("%H:%M")
 
 def get_psi_result(case_id):
-    psi = run_psi_query(case_id)
-    if case_id == "CUST-1047":
-        psi["match_count"] = 2
-        psi["passed"] = psi["match_count"] >= 1
-        psi["matched_banks"] = ["Bank Gamma", "Bank Delta"]
-    else:
-        psi["matched_banks"] = []
+    stage1 = run_stage1_psi_cardinality(case_id, "Bank Alpha")
+    psi = {
+        "stage": stage1.get("stage", 1),
+        "entity_id": stage1.get("entity_id", case_id),
+        "match_count": stage1.get("matched_bank_count", 0),
+        "passed": stage1.get("matched_bank_count", 0) >= 1,
+        "matched_banks": [],
+        "token_preview": stage1.get("technical_trace", {}).get("query_token_preview"),
+        "psi_token": stage1.get("technical_trace", {}).get("query_token_preview"),
+    }
     return psi
 
 def get_zkp_result(case_id):
