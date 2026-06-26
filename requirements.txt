@@ -1,3 +1,4 @@
-streamlit
-pandas
-plotly
+streamlit>=1.30
+pandas>=2.0
+plotly>=5.18
+cryptography>=42.0

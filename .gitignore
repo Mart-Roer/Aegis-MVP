@@ -1,12 +1,5 @@
 __pycache__/
-*.py[cod]
-*.pyo
-.env
-.venv
+*.pyc
+.venv/
 venv/
-env/
-.streamlit/secrets.toml
-*.egg-info/
-dist/
-build/
 .DS_Store

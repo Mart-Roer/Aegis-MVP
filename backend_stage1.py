@@ -1,83 +1,51 @@
+"""
+backend_stage1.py -- Stage 1 (Consortium Match Check), backed by REAL crypto.
+
+Drop-in replacement for the earlier simulated PSI-cardinality model. It keeps the
+exact function name and return shape that app.py expects, but the match count is
+now produced by the real aegis protocol -- a sealed query routed blindly through
+the Aegis router, with membership proofs verified against each member's
+pre-registered Merkle root (see the aegis/ package and aegis_backend.py).
+
+NOTE: in this MVP "presence" (Stage 1) is modelled with the same committed-set
+membership primitive used for Stage 2's high-risk attestation. Production Stage 1
+is full Private Set Intersection (see aegis/identity.py); the structure is
+identical, only the matching primitive is upgraded.
+"""
+
 import hashlib
-import random
-from typing import Dict
 
-# MVP simulation only. This is a toy model of PSI-cardinality behavior.
-# It is not production cryptography and should not be used as a real secure PSI protocol.
+from aegis_backend import get_backend
 
-_MODULUS = 2 ** 16
-
-# Synthetic per-bank entity sets.
-# CUST-1047 appears at exactly two other banks besides Bank Alpha.
-# CUST-2198 appears nowhere else.
-# CUST-3321 appears at exactly one other bank.
-_SYNTHETIC_BANK_ENTITIES = {
-    "Bank Alpha": {"CUST-1047", "CUST-2198", "CUST-3321"},
-    "Bank Beta": {"CUST-3321"},
-    "Bank Gamma": {"CUST-1047"},
-    "Bank Delta": {"CUST-1047"},
-    "Bank Zeta": {"CUST-9999"},
-    "Bank Eta": {"CUST-0001"},
-    "Bank Theta": {"CUST-4444"},
-}
+# Synthetic demo scenarios: how many OTHER consortium members hold the entity.
+_SCENARIO_PRESENT = {"CUST-1047": 2, "CUST-2198": 0, "CUST-3321": 1}
 
 
 def _normalize_entity(entity_id: str) -> str:
     return entity_id.strip().upper()
 
 
-def _tokenize_entity(entity_id: str) -> str:
+def run_stage1_psi_cardinality(entity_id: str, querying_bank: str) -> dict:
+    """Return the Stage-1 match result. `matched_bank_count` is the count of
+    cryptographically verified matches from the real protocol; bank identities
+    are never returned."""
     normalized = _normalize_entity(entity_id)
-    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-
-
-def run_stage1_psi_cardinality(entity_id: str, querying_bank: str) -> Dict:
-    """
-    Simulate PSI-cardinality for Stage 1.
-    Only return the count of other banks holding the same entity.
-    Do not reveal matched bank names, IDs, or per-bank results.
-    """
-    normalized = _normalize_entity(entity_id)
-    token = _tokenize_entity(normalized)
-
-    # Participating banks exclude the querying bank for the final count.
-    participating_banks = [
-        bank for bank in _SYNTHETIC_BANK_ENTITIES.keys() if bank != querying_bank
-    ]
-
-    # Each bank computes a local 0/1 match check.
-    local_matches = []
-    for bank in participating_banks:
-        local_set = _SYNTHETIC_BANK_ENTITIES.get(bank, set())
-        local_matches.append(1 if normalized in local_set else 0)
-
-    # Secret-share each local match bit into two random-looking shares.
-    shares_a = []
-    shares_b = []
-    for match in local_matches:
-        r = random.randint(0, _MODULUS - 1)
-        shares_a.append(r)
-        shares_b.append((match - r) % _MODULUS)
-
-    # Backend receives aggregate shares only, not individual matches.
-    aggregate_share_total_a = sum(shares_a) % _MODULUS
-    aggregate_share_total_b = sum(shares_b) % _MODULUS
-    reconstructed_match_count = (aggregate_share_total_a + aggregate_share_total_b) % _MODULUS
-
+    scenario = _SCENARIO_PRESENT.get(normalized, 0)
+    matched = get_backend().stage1_match_count(normalized, scenario)   # REAL
+    token = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     return {
         "stage": 1,
         "entity_id": normalized,
         "querying_bank": querying_bank,
-        "matched_bank_count": int(reconstructed_match_count),
+        "matched_bank_count": int(matched),
         "disclosure_level": "count_only",
-        "technology_modelled": "simulated_psi_cardinality_with_secret_sharing",
+        "technology_modelled": "real_membership_proof_via_blind_router",
         "technical_trace": {
             "query_token_preview": token[:8],
-            "participating_bank_count": len(participating_banks),
             "backend_received": [
-                "aggregate_share_total_a",
-                "aggregate_share_total_b",
-                "reconstructed_match_count",
+                "sealed query blob",
+                "sealed replies (one per member)",
+                "verified match count",
             ],
             "backend_did_not_disclose": [
                 "raw customer lists",
@@ -90,5 +58,6 @@ def run_stage1_psi_cardinality(entity_id: str, querying_bank: str) -> Dict:
 
 
 if __name__ == "__main__":
-    result = run_stage1_psi_cardinality("CUST-1047", "Bank Alpha")
-    print(result)
+    for cid in ("CUST-1047", "CUST-2198", "CUST-3321"):
+        r = run_stage1_psi_cardinality(cid, "Bank Alpha")
+        print(cid, "-> matched_bank_count =", r["matched_bank_count"])
